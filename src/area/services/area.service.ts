@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { getAll } from './area.api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import * as AreaAPI from './area.api'
 import { useReducer } from 'react'
 import { areaReducer, initialState } from './area.reducer'
 import { Area } from '@/area/models'
@@ -7,13 +7,19 @@ import { Area } from '@/area/models'
 export function useAreaService() {
   const [state, dispatch] = useReducer(areaReducer, initialState)
 
+  const queryClient = useQueryClient()
+
   const {
     isPending,
     error,
     data: areas,
   } = useQuery({
     queryKey: ['area'],
-    queryFn: getAll,
+    queryFn: AreaAPI.getAll,
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: AreaAPI.save,
   })
 
   function setActiveItem(area: Partial<Area> | NonNullable<unknown>) {
@@ -24,8 +30,9 @@ export function useAreaService() {
     dispatch({ type: 'setActiveItem', payload: null })
   }
 
-  function save(area: Area) {
-    console.log('*****************save', area)
+  async function save(area: Area) {
+    await saveMutation.mutateAsync(area)
+    await queryClient.invalidateQueries({ queryKey: ['area'] })
     dispatch({ type: 'save', payload: area })
   }
 
