@@ -1,19 +1,15 @@
 import { ServerError, Spinner } from '@/shared/components'
 import { Area } from '@/area/models'
+import { useAreaServer } from '@/area/services'
 
 type AreaListProps = {
-  isPending: boolean
-  error: Error | null
-  areas?: Area[]
   onSelectItem: (area: Area) => void
 }
 
-export function AreaList({
-  isPending,
-  error,
-  areas,
-  onSelectItem,
-}: AreaListProps) {
+export function AreaList({ onSelectItem }: AreaListProps) {
+  const { queries } = useAreaServer()
+  const { isPending, error, data: areas } = queries.getAllQuery
+
   if (isPending) return <Spinner />
 
   if (error) return <ServerError message={error.message} />

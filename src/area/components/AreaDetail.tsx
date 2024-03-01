@@ -1,11 +1,12 @@
 import clsx from 'clsx'
 import { Area } from '@/area/models'
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import { useAreaServer } from '@/area/services'
 
 type AreaDetailProps = {
   activeItem: Partial<Area> | null
   onClose: () => void
-  onSave: (area: Area) => void
+  onSave: (area: Area, mutationFn: (area: Area) => Promise<Area>) => void
 }
 
 const initialState: Partial<Area> = {
@@ -16,6 +17,7 @@ const initialState: Partial<Area> = {
 }
 
 export function AreaDetail({ activeItem, onClose, onSave }: AreaDetailProps) {
+  const { mutations } = useAreaServer()
   const [formData, setFormData] = useState(initialState)
   const [dirty, setDirty] = useState<boolean>(false)
   const [readOnly, setReadOnly] = useState<boolean>(false)
@@ -42,12 +44,15 @@ export function AreaDetail({ activeItem, onClose, onSave }: AreaDetailProps) {
 
   function saveHandler(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    onSave({
-      id: formData?.id || '',
-      name: formData?.name || '',
-      location: formData?.location || '',
-      manager: formData?.manager || '',
-    })
+    onSave(
+      {
+        id: formData?.id || '',
+        name: formData?.name || '',
+        location: formData?.location || '',
+        manager: formData?.manager || '',
+      },
+      mutations.saveMutation.mutateAsync,
+    )
   }
 
   const isIdValid = formData.id?.length
